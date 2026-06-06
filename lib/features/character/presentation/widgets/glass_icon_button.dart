@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/dimens.dart';
 import '../../../../core/widgets/spring_pressable.dart';
 
 class GlassIconButton extends StatelessWidget {
@@ -14,12 +15,14 @@ class GlassIconButton extends StatelessWidget {
     required this.tint,
     required this.onTap,
     this.size = 56,
-    this.borderRadius = 18,
+    this.borderRadius = Radii.lg,
   });
 
   @override
   Widget build(BuildContext context) {
     final radius = BorderRadius.circular(borderRadius);
+    final innerRadius = BorderRadius.circular(borderRadius - 5);
+
     return SpringPressable(
       onTap: onTap,
       child: Container(
@@ -44,9 +47,45 @@ class GlassIconButton extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            ClipRRect(
-              borderRadius: radius,
-              child: Image.asset(asset, fit: BoxFit.cover),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: radius,
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.white.withValues(alpha: 0.14),
+                    Colors.white.withValues(alpha: 0.04),
+                  ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(5),
+              child: ClipRRect(
+                borderRadius: innerRadius,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.asset(asset, fit: BoxFit.cover),
+                    IgnorePointer(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          borderRadius: innerRadius,
+                          gradient: RadialGradient(
+                            radius: 0.9,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withValues(alpha: 0.28),
+                            ],
+                            stops: const [0.55, 1.0],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
             IgnorePointer(
               child: DecoratedBox(
@@ -56,14 +95,13 @@ class GlassIconButton extends StatelessWidget {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Colors.white.withValues(alpha: 0.22),
+                      Colors.white.withValues(alpha: 0.28),
                       Colors.white.withValues(alpha: 0.0),
-                      Colors.black.withValues(alpha: 0.18),
                     ],
-                    stops: const [0.0, 0.45, 1.0],
+                    stops: const [0.0, 0.5],
                   ),
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.22),
+                    color: Colors.white.withValues(alpha: 0.24),
                     width: 1,
                   ),
                 ),

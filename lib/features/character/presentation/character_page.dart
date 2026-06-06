@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/app_theme.dart';
+import '../../../core/theme/dimens.dart';
 import '../../../core/theme/peak_colors.dart';
+import '../../../core/widgets/glass_panel.dart';
 import '../logic/character_notifier.dart';
 import '../logic/character_state.dart';
 import 'widgets/about_sheet.dart';
@@ -42,9 +44,9 @@ class _CharacterPageState extends ConsumerState<CharacterPage> {
             SafeArea(
               child: Column(
                 children: [
-                  const SizedBox(height: 18),
+                  const SizedBox(height: Insets.x5),
                   const _Title(),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: Insets.x4),
                   _ActionRow(
                     onImBingBong: () {
                       _shockwave.pulse();
@@ -56,7 +58,7 @@ class _CharacterPageState extends ConsumerState<CharacterPage> {
                   ),
                   const Spacer(),
                   _QuoteArea(state: state),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: Insets.x7),
                   _Character(state: state, shockwave: _shockwave),
                   const Spacer(),
                 ],
@@ -92,11 +94,11 @@ class _Title extends StatelessWidget {
             fontFamily: kCharacterFont,
             fontSize: 34,
             letterSpacing: 6,
-            color: PeakColors.textGlow,
+            color: AppColors.voice,
             shadows: kTextShadows,
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: Insets.x1 + 2),
         Container(
           width: 44,
           height: 2,
@@ -105,7 +107,7 @@ class _Title extends StatelessWidget {
             gradient: LinearGradient(
               colors: [
                 Colors.white.withValues(alpha: 0.0),
-                PeakColors.accentCoral.withValues(alpha: 0.85),
+                AppColors.action.withValues(alpha: 0.85),
                 Colors.white.withValues(alpha: 0.0),
               ],
             ),
@@ -128,10 +130,10 @@ class _ActionRow extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         ImBingBongButton(onTap: onImBingBong),
-        const SizedBox(width: 18),
+        const SizedBox(width: Insets.x5),
         GlassIconButton(
           asset: 'assets/images/about_icon.jpg',
-          tint: PeakColors.accentCyan,
+          tint: AppColors.actionAlt,
           onTap: onAbout,
         ),
       ],
@@ -147,7 +149,7 @@ class _QuoteArea extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 30),
+      padding: const EdgeInsets.symmetric(horizontal: Insets.x7),
       child: SizedBox(
         height: 110,
         child: Center(
@@ -168,17 +170,27 @@ class _QuoteArea extends StatelessWidget {
               );
             },
             child: state.isTalking
-                ? Text(
-                    state.quote,
+                ? GlassPanel(
                     key: ValueKey(state.quote),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontFamily: kCharacterFont,
-                      fontSize: 26,
-                      height: 1.2,
-                      color: PeakColors.accentYellow,
-                      fontStyle: FontStyle.italic,
-                      shadows: kTextShadows,
+                    borderRadius: Radii.xl,
+                    blurSigma: 16,
+                    fillAlpha: 0.06,
+                    strokeAlpha: 0.14,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: Insets.x5,
+                      vertical: Insets.x3,
+                    ),
+                    child: Text(
+                      state.quote,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontFamily: kCharacterFont,
+                        fontSize: 26,
+                        height: 1.2,
+                        color: AppColors.quote,
+                        fontStyle: FontStyle.italic,
+                        shadows: kTextShadows,
+                      ),
                     ),
                   )
                 : const PulsingTapMe(),

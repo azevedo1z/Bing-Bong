@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../app/app_theme.dart';
+import '../../../../core/theme/dimens.dart';
 import '../../../../core/theme/peak_colors.dart';
 import '../../../../core/widgets/glass_panel.dart';
 import '../../../../core/widgets/spring_pressable.dart';
@@ -22,26 +23,31 @@ class AboutSheet extends StatelessWidget {
     return SafeArea(
       top: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+        padding: const EdgeInsets.fromLTRB(Insets.x4, 0, Insets.x4, Insets.x3),
         child: GlassPanel(
-          borderRadius: 28,
+          borderRadius: Radii.xxl,
           blurSigma: 30,
           fillAlpha: 0.10,
           strokeAlpha: 0.22,
-          padding: const EdgeInsets.fromLTRB(24, 14, 24, 28),
+          padding: const EdgeInsets.fromLTRB(
+            Insets.x6,
+            Insets.x4,
+            Insets.x6,
+            Insets.x7,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: const [
               _SheetHandle(),
-              SizedBox(height: 22),
+              SizedBox(height: Insets.x6),
               _SheetIcon(),
-              SizedBox(height: 18),
+              SizedBox(height: Insets.x5),
               _SheetTitle(),
-              SizedBox(height: 6),
+              SizedBox(height: Insets.x1 + 2),
               _SheetSubtitle(),
-              SizedBox(height: 22),
+              SizedBox(height: Insets.x6),
               _GitHubButton(),
-              SizedBox(height: 16),
+              SizedBox(height: Insets.x4),
               _SheetFooter(),
             ],
           ),
@@ -72,14 +78,15 @@ class _SheetIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(Radii.xl);
     return Container(
       width: 96,
       height: 96,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: radius,
         boxShadow: [
           BoxShadow(
-            color: PeakColors.accentCoral.withValues(alpha: 0.35),
+            color: AppColors.action.withValues(alpha: 0.35),
             blurRadius: 30,
             spreadRadius: -6,
             offset: const Offset(0, 10),
@@ -87,8 +94,34 @@ class _SheetIcon extends StatelessWidget {
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: Image.asset('assets/images/about_icon.jpg', fit: BoxFit.cover),
+        borderRadius: radius,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.asset('assets/images/about_icon.jpg', fit: BoxFit.cover),
+            IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: radius,
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.white.withValues(alpha: 0.22),
+                      Colors.white.withValues(alpha: 0.0),
+                      Colors.black.withValues(alpha: 0.22),
+                    ],
+                    stops: const [0.0, 0.5, 1.0],
+                  ),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.22),
+                    width: 1,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -104,7 +137,7 @@ class _SheetTitle extends StatelessWidget {
       style: TextStyle(
         fontFamily: kCharacterFont,
         fontSize: 30,
-        color: PeakColors.textGlow,
+        color: AppColors.voice,
         shadows: kTextShadows,
       ),
     );
@@ -155,13 +188,13 @@ class _GitHubButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 13),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(Radii.md),
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              PeakColors.accentCoral,
-              PeakColors.accentCoral.withValues(alpha: 0.82),
+              AppColors.action,
+              AppColors.action.withValues(alpha: 0.82),
             ],
           ),
           border: Border.all(
@@ -170,7 +203,7 @@ class _GitHubButton extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: PeakColors.accentCoral.withValues(alpha: 0.45),
+              color: AppColors.action.withValues(alpha: 0.45),
               blurRadius: 22,
               spreadRadius: -4,
               offset: const Offset(0, 8),
