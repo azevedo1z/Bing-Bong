@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:thermion_flutter/thermion_flutter.dart';
 
 import '../../logic/character_notifier.dart';
 import 'shockwave.dart';
@@ -18,7 +19,7 @@ class BingBongWidget extends ConsumerStatefulWidget {
 
 class _BingBongWidgetState extends ConsumerState<BingBongWidget>
     with TickerProviderStateMixin {
-  static const double _imageSize = 280;
+  static const double _modelSize = 280;
 
   late final AnimationController _floatController;
   late final AnimationController _breathController;
@@ -29,6 +30,12 @@ class _BingBongWidgetState extends ConsumerState<BingBongWidget>
   late final Animation<double> _breathAnim;
   late final Animation<double> _scaleY;
   late final Animation<double> _scaleX;
+
+  final Widget _modelViewport = const SizedBox(
+    width: _modelSize,
+    height: _modelSize,
+    child: BingBongModel(),
+  );
 
   @override
   void initState() {
@@ -157,12 +164,126 @@ class _BingBongWidgetState extends ConsumerState<BingBongWidget>
             ),
           );
         },
-        child: Image.asset(
-          'assets/images/bing_bong.png',
-          width: _imageSize,
-          fit: BoxFit.contain,
-        ),
+        child: _modelViewport,
       ),
     );
+  }
+}
+
+class BingBongModel extends StatefulWidget {
+  const BingBongModel({super.key});
+
+  @override
+  State<BingBongModel> createState() => _BingBongModelState();
+}
+
+class _BingBongModelState extends State<BingBongModel> {
+  static const String _modelAsset = 'assets/models/peak-bingbong-model.glb';
+  static const String _iblAsset = 'assets/models/default_env_ibl.ktx';
+
+  static const double _fill = 1.1;
+  static const double _fallbackTanHalfFov = 0.2;
+
+  ThermionViewer? _viewer;
+  ThermionAsset? _asset;
+  Widget? _surface;
+
+  @override
+  void initState() {
+    super.initState();
+    _setup();
+  }
+
+  Future<void> _setup() async {
+    final viewer = await ThermionFlutterPlugin.createViewer();
+    _viewer = viewer;
+
+    final asset = await viewer.loadGltf(_modelAsset);
+    _asset = asset;
+    await viewer.loadIbl(_iblAsset);
+    await viewer.setPostProcessing(true);
+    await viewer.setAntiAliasing(false, true, false);
+
+    await _frameCamera(_fallbackTanHalfFov);
+
+    await viewer.setRendering(true);
+    await viewer.setBackgroundColor(0, 0, 0, 0);
+
+    if (!mounted) return;
+    setState(() {
+      _surface = ThermionWidget(
+        viewer: viewer,
+        initial: const SizedBox.shrink(),
+      );
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) => _reframeToLens());
+  }
+
+  Future<void> _frameCamera(double tanHalfFov) async {
+    final viewer = _viewer;
+    final asset = _asset;
+    if (viewer == null || asset == null) return;
+
+    final bb = await _worldBoundingBox(viewer, asset);
+    final size = bb.max - bb.min;
+    final center = bb.center;
+
+    final radius = math.max(size.x, size.y) * 0.5;
+    final distance = radius / (_fill * tanHalfFov);
+
+    final camera = await viewer.getActiveCamera();
+    await camera.lookAt(
+      Vector3(center.x, center.y, center.z + distance),
+      focus: Vector3(center.x, center.y, center.z),
+    );
+  }
+
+  Future<Aabb3> _worldBoundingBox(
+      ThermionViewer viewer, ThermionAsset asset) async {
+    Aabb3? bounds;
+    for (final entity in await asset.getChildEntities()) {
+      final local = await viewer.getRenderableBoundingBox(entity);
+      final extent = local.max - local.min;
+      if (extent.x <= 0 && extent.y <= 0 && extent.z <= 0) continue;
+
+      final world = await asset.getWorldTransform(entity: entity);
+      local.transform(world);
+
+      if (bounds == null) {
+        bounds = Aabb3.copy(local);
+      } else {
+        bounds.hull(local);
+      }
+    }
+    return bounds ?? Aabb3();
+  }
+
+  Future<void> _reframeToLens() async {
+    final viewer = _viewer;
+    if (viewer == null) return;
+    final camera = await viewer.getActiveCamera();
+
+    for (var i = 0; i < 12 && mounted; i++) {
+      final proj = await camera.getProjectionMatrix();
+      final isPerspective = proj.entry(3, 2).abs() > 0.5;
+      final m11 = proj.entry(1, 1).abs();
+      if (isPerspective && m11 > 0.01) {
+        await _frameCamera(1.0 / m11);
+        return;
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+    }
+  }
+
+  @override
+  void dispose() {
+    _viewer?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _surface ?? const SizedBox.shrink();
   }
 }

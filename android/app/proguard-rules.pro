@@ -24,6 +24,14 @@
 -dontwarn io.flutter.plugins.urllauncher.**
 
 # ============================================================
+# thermion_flutter — plugin Android (texture/surface) registrado
+# via reflection; o renderer nativo (libthermion_dart.so) é
+# carregado por dart:ffi e não é afetado pelo R8
+# ============================================================
+-keep class dev.thermion.android.** { *; }
+-dontwarn dev.thermion.android.**
+
+# ============================================================
 # Play Core (Flutter deferred components — não usamos, mas
 # o Flutter referencia em runtime)
 # ============================================================
