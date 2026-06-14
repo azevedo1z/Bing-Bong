@@ -46,6 +46,7 @@ For a brief time after PEAK's launch, the developers at Aggro Crab could actuall
 ## Features
 
 - **26 authentic voice lines**: all the classic Bing Bong responses, from *"yeah definitely"* to *"im not comfortable answering that"*
+- **Real-time 3D Bing Bong**: a fully 3D model rendered with the Filament engine (via `thermion_flutter`) — you squeeze the actual model, not a flat sprite
 - **Shuffle-bag randomization**: every voice line plays before any repeats, never the same line twice in a row
 - **Premium gamified physics**: squash & stretch on tap (non-uniform scale), rotational wobble, spring-elastic button press
 - **Shockwave ripple emit**: tapping Bing Bong sends an expanding ring outward — emitted from the character on every voice line trigger
@@ -64,6 +65,7 @@ For a brief time after PEAK's launch, the developers at Aggro Crab could actuall
 |-------|-----------|
 | Framework | Flutter 3.41.6 / Dart 3.11.4 |
 | State Management | flutter_riverpod (StateNotifier) |
+| 3D Rendering | thermion_flutter (Filament engine) |
 | Audio | audioplayers 6.x (local asset playback) |
 | Links | url_launcher (external GitHub link) |
 | Typography | Daruma Drop One (character voice) + system sans (UI chrome) |
@@ -97,7 +99,7 @@ lib/
 │   │           ├── about_sheet.dart           # Glass bottom sheet + GitHub link
 │   │           ├── ambient_glow.dart          # Breathing dual-tone halo (warm + cool)
 │   │           ├── background.dart            # Blurred bg + vignette + spotlight + light leaks
-│   │           ├── bing_bong_widget.dart      # Squash & stretch + wobble + ripple emit
+│   │           ├── bing_bong_widget.dart      # 3D GLB model (Thermion/Filament) + squash & stretch + wobble + ripple emit
 │   │           ├── glass_icon_button.dart     # Reusable glass tile w/ spring press
 │   │           ├── glass_quote_card.dart      # Glassmorphism quote card
 │   │           ├── im_bing_bong_button.dart   # Specialized GlassIconButton (catchphrase)
@@ -147,6 +149,10 @@ Voice line .mp3 files are not included in this repository. To run the app locall
 **PEAK** is a co-op climbing game where the slightest mistake can spell your doom. Solo or as a group of up to four lost nature scouts, your only hope of rescue from a mysterious island is to scale the mountain at its center. The terrain changes every 24 hours. Over **11 million copies sold** on Steam with **Overwhelmingly Positive** reviews (95%).
 
 Developed by **Team PEAK**, a collaboration between [Aggro Crab](https://aggrocrab.com/) (*Another Crab's Treasure*) and [Landfall](https://landfall.se/) (*Content Warning*).
+
+## Credits
+
+- **3D model** of Bing Bong by [**OFFDucky3D**](https://skfb.ly/pATH7) on Sketchfab.
 
 ---
 

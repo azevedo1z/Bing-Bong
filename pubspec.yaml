@@ -1,6 +1,6 @@
 name: bingbong
 description: Bing Bong - Magic 8-Ball Voice App
-version: 1.0.2
+version: 1.1.0
 publish_to: 'none'
 
 environment:
@@ -12,6 +12,7 @@ dependencies:
   audioplayers: ^6.1.0
   flutter_riverpod: ^2.6.1
   url_launcher: ^6.3.1
+  thermion_flutter: ^0.3.4
 
 dev_dependencies:
   flutter_test:
@@ -30,6 +31,7 @@ flutter:
   assets:
     - assets/audio/
     - assets/images/
+    - assets/models/
   fonts:
     - family: DarumadropOne
       fonts:
