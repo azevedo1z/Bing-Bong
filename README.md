@@ -148,7 +148,7 @@ flutter build apk
 Voice line .mp3 files are not included in this repository. To run the app locally, place 26 .mp3 files in `assets/audio/`. Filenames become the displayed **English** quote text; underscores in filenames are rendered as apostrophes
 (e.g. `It_s a beautiful day.mp3` → `It's a beautiful day`).
 
-Portuguese quotes are an override layer in `core/i18n/quote_translations.dart` (asset path → PT text). Lines with no entry — interjections like `nahhh`/`uhhhhhh` — fall back to the English base. The audio is never translated; only the on-screen text is.
+Portuguese quotes are an override layer in `core/i18n/quote_translations.dart` (asset path → PT text). Lines with no entry, interjections like `nahhh`/`uhhhhhh`, fall back to the English base. The audio is never translated; only the on-screen text is.
 
 ## About PEAK
 
