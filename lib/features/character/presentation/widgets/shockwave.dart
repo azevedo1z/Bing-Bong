@@ -11,11 +11,7 @@ class ShockwaveLayer extends StatefulWidget {
   final ShockwaveController controller;
   final double size;
 
-  const ShockwaveLayer({
-    super.key,
-    required this.controller,
-    this.size = 280,
-  });
+  const ShockwaveLayer({super.key, required this.controller, this.size = 280});
 
   @override
   State<ShockwaveLayer> createState() => _ShockwaveLayerState();
@@ -78,8 +74,9 @@ class _ShockwaveLayerState extends State<ShockwaveLayer>
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: PeakColors.idleGlow
-                            .withValues(alpha: alpha.clamp(0.0, 1.0)),
+                        color: PeakColors.idleGlow.withValues(
+                          alpha: alpha.clamp(0.0, 1.0),
+                        ),
                         width: 2.5 * (1.0 - t * 0.7),
                       ),
                     ),

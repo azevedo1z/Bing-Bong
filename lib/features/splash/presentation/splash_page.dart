@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../core/navigation/fade_route.dart';
 import '../../../core/theme/peak_colors.dart';
 import '../../character/presentation/character_page.dart';
 
@@ -40,16 +41,7 @@ class _SplashPageState extends State<SplashPage>
 
     _controller.forward().then((_) {
       if (!mounted) return;
-      Navigator.of(context).pushReplacement(
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) =>
-              const CharacterPage(),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(opacity: animation, child: child);
-          },
-          transitionDuration: const Duration(milliseconds: 500),
-        ),
-      );
+      Navigator.of(context).pushReplacement(fadeRoute(const CharacterPage()));
     });
   }
 
@@ -70,10 +62,8 @@ class _SplashPageState extends State<SplashPage>
         backgroundColor: PeakColors.deepPurple,
         body: AnimatedBuilder(
           animation: _controller,
-          builder: (context, child) => Opacity(
-            opacity: _fadeIn.value * _fadeOut.value,
-            child: child,
-          ),
+          builder: (context, child) =>
+              Opacity(opacity: _fadeIn.value * _fadeOut.value, child: child),
           child: Stack(
             fit: StackFit.expand,
             children: [

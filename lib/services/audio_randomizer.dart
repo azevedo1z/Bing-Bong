@@ -7,7 +7,7 @@ class AudioRandomizer {
   String? _lastPlayed;
 
   AudioRandomizer(this._source, {Random? random})
-      : _random = random ?? Random();
+    : _random = random ?? Random();
 
   String next() {
     if (_pool.isEmpty) {

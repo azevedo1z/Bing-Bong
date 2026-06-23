@@ -72,7 +72,8 @@ class _SpringPressableState extends State<SpringPressable>
         animation: _controller,
         builder: (context, child) {
           final scale =
-              widget.pressedScale + _controller.value * (1.0 - widget.pressedScale);
+              widget.pressedScale +
+              _controller.value * (1.0 - widget.pressedScale);
           return Transform.scale(scale: scale, child: child);
         },
         child: widget.child,
