@@ -2,15 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/app_theme.dart';
+import '../../../core/i18n/app_locale.dart';
 import '../../../core/theme/dimens.dart';
 import '../../../core/theme/peak_colors.dart';
 import '../../../core/widgets/glass_panel.dart';
 import '../logic/character_notifier.dart';
 import '../logic/character_state.dart';
+import '../logic/quote_localizer.dart';
 import 'widgets/about_sheet.dart';
 import 'widgets/ambient_glow.dart';
 import 'widgets/background.dart';
 import 'widgets/bing_bong_widget.dart';
+import '../../language/presentation/language_overlay.dart';
 import 'widgets/glass_icon_button.dart';
 import 'widgets/im_bing_bong_button.dart';
 import 'widgets/pulsing_tap_me.dart';
@@ -25,10 +28,12 @@ class CharacterPage extends ConsumerStatefulWidget {
 
 class _CharacterPageState extends ConsumerState<CharacterPage> {
   final ShockwaveController _shockwave = ShockwaveController();
+  AppLocale? _locale;
 
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(characterProvider);
+    final locale = _locale ?? AppLocale.en;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
@@ -57,13 +62,17 @@ class _CharacterPageState extends ConsumerState<CharacterPage> {
                     onAbout: () => _openAbout(context),
                   ),
                   const Spacer(),
-                  _QuoteArea(state: state),
+                  _QuoteArea(state: state, locale: locale),
                   const SizedBox(height: Insets.x7),
                   _Character(state: state, shockwave: _shockwave),
                   const Spacer(),
                 ],
               ),
             ),
+            if (_locale == null)
+              LanguageOverlay(
+                onSelect: (selected) => setState(() => _locale = selected),
+              ),
           ],
         ),
       ),
@@ -143,8 +152,9 @@ class _ActionRow extends StatelessWidget {
 
 class _QuoteArea extends StatelessWidget {
   final CharacterState state;
+  final AppLocale locale;
 
-  const _QuoteArea({required this.state});
+  const _QuoteArea({required this.state, required this.locale});
 
   @override
   Widget build(BuildContext context) {
@@ -171,7 +181,7 @@ class _QuoteArea extends StatelessWidget {
             },
             child: state.isTalking
                 ? GlassPanel(
-                    key: ValueKey(state.quote),
+                    key: ValueKey(state.quoteKey),
                     borderRadius: Radii.xl,
                     blurSigma: 16,
                     fillAlpha: 0.06,
@@ -181,7 +191,7 @@ class _QuoteArea extends StatelessWidget {
                       vertical: Insets.x3,
                     ),
                     child: Text(
-                      state.quote,
+                      localizeQuote(state.quoteKey, locale),
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         fontFamily: kCharacterFont,
@@ -193,7 +203,7 @@ class _QuoteArea extends StatelessWidget {
                       ),
                     ),
                   )
-                : const PulsingTapMe(),
+                : PulsingTapMe(locale: locale),
           ),
         ),
       ),

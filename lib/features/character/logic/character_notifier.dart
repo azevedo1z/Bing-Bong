@@ -4,8 +4,8 @@ import 'character_state.dart';
 
 final characterProvider =
     StateNotifierProvider<CharacterNotifier, CharacterState>(
-  (ref) => CharacterNotifier(),
-);
+      (ref) => CharacterNotifier(),
+    );
 
 class CharacterNotifier extends StateNotifier<CharacterState> {
   final AudioService _audioService = AudioService();
@@ -18,8 +18,8 @@ class CharacterNotifier extends StateNotifier<CharacterState> {
 
   Future<void> onTap() async {
     try {
-      final quote = await _audioService.playNext();
-      state = CharacterState(isTalking: true, quote: quote);
+      final quoteKey = await _audioService.playNext();
+      state = CharacterState(isTalking: true, quoteKey: quoteKey);
     } catch (_) {
       state = CharacterState.idle;
     }
@@ -27,8 +27,8 @@ class CharacterNotifier extends StateNotifier<CharacterState> {
 
   Future<void> playSpecific(String path) async {
     try {
-      final quote = await _audioService.playSpecific(path);
-      state = CharacterState(isTalking: true, quote: quote);
+      final quoteKey = await _audioService.playSpecific(path);
+      state = CharacterState(isTalking: true, quoteKey: quoteKey);
     } catch (_) {
       state = CharacterState.idle;
     }

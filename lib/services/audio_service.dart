@@ -25,15 +25,7 @@ class AudioService {
     if (_isPlaying) await _player.stop();
     await _player.play(AssetSource(path));
     _isPlaying = true;
-    return _extractQuote(path);
-  }
-
-  String _extractQuote(String path) {
-    var quote = path.split('/').last.replaceAll('.mp3', '');
-    if (quote.endsWith('_')) {
-      quote = '${quote.substring(0, quote.length - 1)}?';
-    }
-    return quote.replaceAll('_', "'");
+    return path;
   }
 
   Future<void> dispose() async {

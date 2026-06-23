@@ -48,6 +48,7 @@ For a brief time after PEAK's launch, the developers at Aggro Crab could actuall
 - **26 authentic voice lines**: all the classic Bing Bong responses, from *"yeah definitely"* to *"im not comfortable answering that"*
 - **Real-time 3D Bing Bong**: a fully 3D model rendered with the Filament engine (via `thermion_flutter`), you squeeze the actual model, not a flat sprite
 - **Drag to inspect in 3D**: drag the character to orbit him freely, see his back, his feet, every angle; release and he eases back to facing you
+- **English / Português**: a glass language panel greets you over the main screen on first launch; your pick translates Bing Bong's on-screen quotes, while the voice audio stays in his original English
 - **Shuffle-bag randomization**: every voice line plays before any repeats, never the same line twice in a row
 - **Premium gamified physics**: squash & stretch on tap (non-uniform scale), rotational wobble, spring-elastic button press
 - **Shockwave ripple emit**: tapping Bing Bong sends an expanding ring outward, emitted from the character on every voice line trigger
@@ -84,6 +85,9 @@ lib/
 ├── core/
 │   ├── constants/
 │   │   └── audio_constants.dart               # 26 voice line paths
+│   ├── i18n/
+│   │   ├── app_locale.dart                    # enum AppLocale { en, pt }
+│   │   └── quote_translations.dart            # PT overrides per voice line
 │   ├── theme/
 │   │   └── peak_colors.dart                   # Peak palette + glow tones + soft text shadow
 │   └── widgets/
@@ -92,8 +96,9 @@ lib/
 ├── features/
 │   ├── character/
 │   │   ├── logic/
-│   │   │   ├── character_state.dart           # { isTalking, quote }
-│   │   │   └── character_notifier.dart        # Audio ↔ UI state bridge
+│   │   │   ├── character_state.dart           # { isTalking, quoteKey }
+│   │   │   ├── character_notifier.dart        # Audio ↔ UI state bridge
+│   │   │   └── quote_localizer.dart           # Resolves quote text per locale
 │   │   └── presentation/
 │   │       ├── character_page.dart            # Main screen composition
 │   │       └── widgets/
@@ -106,6 +111,9 @@ lib/
 │   │           ├── im_bing_bong_button.dart   # Specialized GlassIconButton (catchphrase)
 │   │           ├── pulsing_tap_me.dart        # Pulsing idle prompt
 │   │           └── shockwave.dart             # Expanding ring CustomPaint + controller
+│   ├── language/
+│   │   └── presentation/
+│   │       └── language_overlay.dart          # Glass EN/PT panel over the main screen
 │   └── splash/
 │       └── presentation/
 │           └── splash_page.dart               # Vignette-framed opening screen
@@ -114,7 +122,7 @@ lib/
     └── audio_randomizer.dart                  # Shuffle-bag algorithm
 ```
 
-**Data flow:** Tap → `BingBongWidget` triggers `ShockwaveController.pulse()` (visual) and `CharacterNotifier.onTap()` (state) → `AudioService.playNext()` → `AudioRandomizer.next()` → plays mp3 + extracts quote from filename → state goes to `talking` → UI fades/slides the quote text in, `AmbientGlow` ramps up via `_activeAnim`, `Background` opens vignette and lifts warm spotlight → `onPlayerComplete` → state returns to `idle` and the halo fades out. The "i'm bing bong" button follows the same flow via `playSpecific()`, bypassing the randomizer.
+**Data flow:** Tap → `BingBongWidget` triggers `ShockwaveController.pulse()` (visual) and `CharacterNotifier.onTap()` (state) → `AudioService.playNext()` → `AudioRandomizer.next()` → plays mp3 and returns its asset path (the quote *key*) → state goes to `talking` → `_QuoteArea` resolves the key to text for the chosen locale via `localizeQuote()` and fades/slides it in, `AmbientGlow` ramps up via `_activeAnim`, `Background` opens vignette and lifts warm spotlight → `onPlayerComplete` → state returns to `idle` and the halo fades out. The "i'm bing bong" button follows the same flow via `playSpecific()`, bypassing the randomizer.
 
 **Design system:** generic UI primitives live in `core/widgets/` (currently `GlassPanel`, `SpringPressable`). Feature-specific composition (animated character, halo, ripple, quote card) lives under `features/character/presentation/widgets/`. Color and typography tokens live in `core/theme/` and `app/app_theme.dart` (`kCharacterFont`).
 
@@ -137,8 +145,10 @@ flutter build apk
 
 ## Voice Lines
 
-Voice line .mp3 files are not included in this repository. To run the app locally, place 26 .mp3 files in `assets/audio/`. Filenames become the displayed quote text; underscores in filenames are rendered as apostrophes
+Voice line .mp3 files are not included in this repository. To run the app locally, place 26 .mp3 files in `assets/audio/`. Filenames become the displayed **English** quote text; underscores in filenames are rendered as apostrophes
 (e.g. `It_s a beautiful day.mp3` → `It's a beautiful day`).
+
+Portuguese quotes are an override layer in `core/i18n/quote_translations.dart` (asset path → PT text). Lines with no entry — interjections like `nahhh`/`uhhhhhh` — fall back to the English base. The audio is never translated; only the on-screen text is.
 
 ## About PEAK
 

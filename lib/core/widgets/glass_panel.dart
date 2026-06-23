@@ -27,10 +27,12 @@ class GlassPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final radius = BorderRadius.circular(borderRadius);
     final base = tint.withValues(alpha: fillAlpha);
-    final topHighlight =
-        tint.withValues(alpha: (fillAlpha + 0.10).clamp(0.0, 1.0));
-    final bottomHint =
-        tint.withValues(alpha: (fillAlpha + 0.02).clamp(0.0, 1.0));
+    final topHighlight = tint.withValues(
+      alpha: (fillAlpha + 0.10).clamp(0.0, 1.0),
+    );
+    final bottomHint = tint.withValues(
+      alpha: (fillAlpha + 0.02).clamp(0.0, 1.0),
+    );
 
     return ClipRRect(
       borderRadius: radius,

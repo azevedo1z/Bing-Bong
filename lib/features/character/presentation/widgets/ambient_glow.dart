@@ -5,11 +5,7 @@ class AmbientGlow extends StatefulWidget {
   final bool active;
   final Widget child;
 
-  const AmbientGlow({
-    super.key,
-    required this.active,
-    required this.child,
-  });
+  const AmbientGlow({super.key, required this.active, required this.child});
 
   @override
   State<AmbientGlow> createState() => _AmbientGlowState();
@@ -63,10 +59,8 @@ class _AmbientGlowState extends State<AmbientGlow>
         final breathT = Curves.easeInOut.transform(_breath.value);
         final blur = (60 + 40 * breathT) * activeT;
         final spread = (12 + 16 * breathT) * activeT;
-        final warmAlpha =
-            ((0.32 + 0.18 * breathT) * activeT).clamp(0.0, 1.0);
-        final coolAlpha =
-            ((0.18 + 0.12 * breathT) * activeT).clamp(0.0, 1.0);
+        final warmAlpha = ((0.32 + 0.18 * breathT) * activeT).clamp(0.0, 1.0);
+        final coolAlpha = ((0.18 + 0.12 * breathT) * activeT).clamp(0.0, 1.0);
 
         return DecoratedBox(
           decoration: BoxDecoration(

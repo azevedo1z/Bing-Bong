@@ -10,8 +10,7 @@ class Background extends StatefulWidget {
   State<Background> createState() => _BackgroundState();
 }
 
-class _BackgroundState extends State<Background>
-    with TickerProviderStateMixin {
+class _BackgroundState extends State<Background> with TickerProviderStateMixin {
   late final AnimationController _leakA;
   late final AnimationController _leakB;
 
@@ -92,8 +91,16 @@ class _BackgroundState extends State<Background>
             ),
           ),
         ),
-        _LightLeak(controller: _leakA, color: PeakColors.warmLeak, reverse: false),
-        _LightLeak(controller: _leakB, color: PeakColors.coolLeak, reverse: true),
+        _LightLeak(
+          controller: _leakA,
+          color: PeakColors.warmLeak,
+          reverse: false,
+        ),
+        _LightLeak(
+          controller: _leakB,
+          color: PeakColors.coolLeak,
+          reverse: true,
+        ),
       ],
     );
   }
