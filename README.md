@@ -130,7 +130,7 @@ lib/
 
 ```bash
 # Clone
-git clone https://github.com/azevedo1x/bingbong.git
+git clone https://github.com/azevedo1z/bingbong.git
 cd bingbong
 
 # Install dependencies
