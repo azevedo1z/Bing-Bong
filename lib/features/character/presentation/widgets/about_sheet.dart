@@ -6,7 +6,7 @@ import '../../../../core/theme/peak_colors.dart';
 import '../../../../core/widgets/glass_panel.dart';
 import '../../../../core/widgets/spring_pressable.dart';
 
-const _githubUrl = 'https://github.com/azevedo1x';
+const _githubUrl = 'https://github.com/azevedo1z';
 
 Future<void> _openGitHub() async {
   final uri = Uri.parse(_githubUrl);
@@ -216,7 +216,7 @@ class _GitHubButton extends StatelessWidget {
             Icon(Icons.code_rounded, size: 18, color: Colors.white),
             SizedBox(width: 10),
             Text(
-              '@azevedo1x',
+              '@azevedo1z',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 14,
