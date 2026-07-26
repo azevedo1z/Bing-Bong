@@ -12,6 +12,14 @@
         android:usesCleartextTraffic="false"
         tools:targetApi="31"
         tools:ignore="MissingApplicationIcon,UnusedAttribute">
+        <!-- Android 16 (API 36) ignora orientation/resizability em telas >=600dp,
+             o que anularia o portrait-lock de main.dart. Opt-out oficial, porém
+             TEMPORÁRIO: deixa de valer ao subir para targetSdk 37. Antes disso,
+             CharacterPage precisa virar adaptativa (Column/Row + alturas
+             proporcionais no lugar dos 360x360 e 110 fixos). -->
+        <property
+            android:name="android.window.PROPERTY_COMPAT_ALLOW_RESTRICTED_RESIZABILITY"
+            android:value="true" />
         <activity
             android:name="com.magic8ball.bingbong.MainActivity"
             android:exported="true"
