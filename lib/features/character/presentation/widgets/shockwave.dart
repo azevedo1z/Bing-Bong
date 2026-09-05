@@ -1,4 +1,6 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import '../../../../core/theme/dimens.dart';
 import '../../../../core/theme/peak_colors.dart';
 
 class ShockwaveController {
@@ -19,6 +21,8 @@ class ShockwaveLayer extends StatefulWidget {
 
 class _ShockwaveLayerState extends State<ShockwaveLayer>
     with TickerProviderStateMixin {
+  static const _duration = Duration(milliseconds: 420);
+
   final List<AnimationController> _active = [];
 
   @override
@@ -30,17 +34,16 @@ class _ShockwaveLayerState extends State<ShockwaveLayer>
   @override
   void dispose() {
     widget.controller._state = null;
-    for (final c in _active) {
-      c.dispose();
+    for (final controller in _active) {
+      controller
+        ..stop()
+        ..dispose();
     }
     super.dispose();
   }
 
   void _pulse() {
-    final controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 900),
-    );
+    final controller = AnimationController(vsync: this, duration: _duration);
     _active.add(controller);
     controller.forward().whenComplete(() {
       if (!mounted) return;
@@ -61,31 +64,63 @@ class _ShockwaveLayerState extends State<ShockwaveLayer>
           alignment: Alignment.center,
           clipBehavior: Clip.none,
           children: [
-            for (final c in _active)
+            for (final controller in _active)
               AnimatedBuilder(
-                animation: c,
-                builder: (context, _) {
-                  final t = Curves.easeOut.transform(c.value);
-                  final diameter = widget.size * (0.55 + 0.75 * t);
-                  final alpha = (1.0 - t) * 0.55;
-                  return Container(
-                    width: diameter,
-                    height: diameter,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: PeakColors.idleGlow.withValues(
-                          alpha: alpha.clamp(0.0, 1.0),
-                        ),
-                        width: 2.5 * (1.0 - t * 0.7),
-                      ),
-                    ),
-                  );
-                },
+                animation: controller,
+                builder: (context, _) =>
+                    CustomPaint(painter: _BurstPainter(controller.value)),
               ),
           ],
         ),
       ),
     );
   }
+}
+
+class _BurstPainter extends CustomPainter {
+  static const _points = 11;
+  static const _innerRatio = 0.62;
+  static const _fadeFrom = 0.7;
+
+  final double progress;
+
+  const _BurstPainter(this.progress);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final t = Curves.easeOutQuart.transform(progress);
+
+    final fade = progress < _fadeFrom
+        ? 1.0
+        : 1.0 - (progress - _fadeFrom) / (1 - _fadeFrom);
+
+    final outer = size.width * 0.5 * (0.4 + 0.9 * t);
+    final center = size.center(Offset.zero);
+    final path = Path();
+
+    for (var i = 0; i < _points * 2; i++) {
+      final radius = i.isEven ? outer : outer * _innerRatio;
+      final angle = math.pi * i / _points - math.pi / 2;
+      final point = center + Offset(math.cos(angle), math.sin(angle)) * radius;
+      i == 0
+          ? path.moveTo(point.dx, point.dy)
+          : path.lineTo(point.dx, point.dy);
+    }
+    path.close();
+
+    canvas.drawPath(
+      path,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = Strokes.ink
+        ..strokeJoin = StrokeJoin.round
+        ..color = PeakColors.ink.withValues(
+          alpha: (fade * 0.9).clamp(0.0, 1.0),
+        ),
+    );
+  }
+
+  @override
+  bool shouldRepaint(_BurstPainter oldDelegate) =>
+      oldDelegate.progress != progress;
 }

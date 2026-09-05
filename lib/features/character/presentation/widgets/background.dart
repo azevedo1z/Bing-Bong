@@ -1,9 +1,10 @@
-import 'dart:ui';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../../../core/theme/peak_colors.dart';
 
 class Background extends StatefulWidget {
   final bool isTalking;
+
   const Background({super.key, required this.isTalking});
 
   @override
@@ -11,26 +12,26 @@ class Background extends StatefulWidget {
 }
 
 class _BackgroundState extends State<Background> with TickerProviderStateMixin {
-  late final AnimationController _leakA;
-  late final AnimationController _leakB;
+  late final AnimationController _clouds;
+  late final AnimationController _ridge;
 
   @override
   void initState() {
     super.initState();
-    _leakA = AnimationController(
+    _clouds = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 11),
+      duration: const Duration(seconds: 44),
     )..repeat();
-    _leakB = AnimationController(
+    _ridge = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 17),
+      duration: const Duration(seconds: 28),
     )..repeat();
   }
 
   @override
   void dispose() {
-    _leakA.dispose();
-    _leakB.dispose();
+    _clouds.dispose();
+    _ridge.dispose();
     super.dispose();
   }
 
@@ -39,112 +40,147 @@ class _BackgroundState extends State<Background> with TickerProviderStateMixin {
     return Stack(
       fit: StackFit.expand,
       children: [
-        ImageFiltered(
-          imageFilter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
-          child: Image.asset(
-            'assets/images/background.webp',
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [PeakColors.midPurple, PeakColors.deepPurple],
-                ),
-              ),
-            ),
-          ),
-        ),
-        AnimatedContainer(
-          duration: const Duration(milliseconds: 600),
-          curve: Curves.easeInOut,
+        const DecoratedBox(
           decoration: BoxDecoration(
-            gradient: RadialGradient(
-              center: const Alignment(0, -0.05),
-              radius: 1.1,
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
               colors: [
-                PeakColors.deepPurple.withValues(
-                  alpha: widget.isTalking ? 0.05 : 0.22,
-                ),
-                PeakColors.deepPurple.withValues(alpha: 0.72),
-                PeakColors.vignetteEdge.withValues(alpha: 0.92),
+                AppColors.surface,
+                AppColors.ground,
+                AppColors.groundDeep,
               ],
-              stops: const [0.0, 0.65, 1.0],
+              stops: [0.0, 0.45, 1.0],
             ),
           ),
         ),
         AnimatedOpacity(
-          duration: const Duration(milliseconds: 650),
+          duration: const Duration(milliseconds: 600),
           curve: Curves.easeInOut,
-          opacity: widget.isTalking ? 0.22 : 0.0,
-          child: Container(
+          opacity: widget.isTalking ? 1.0 : 0.0,
+          child: const DecoratedBox(
             decoration: BoxDecoration(
               gradient: RadialGradient(
-                center: const Alignment(0, -0.05),
-                radius: 0.9,
-                colors: [
-                  PeakColors.talkGlow.withValues(alpha: 0.55),
-                  PeakColors.talkGlow.withValues(alpha: 0.0),
-                ],
-                stops: const [0.0, 1.0],
+                center: Alignment(0, -0.05),
+                radius: 0.95,
+                colors: [Color(0x33F58F2B), Color(0x00F58F2B)],
               ),
             ),
           ),
         ),
-        _LightLeak(
-          controller: _leakA,
-          color: PeakColors.warmLeak,
-          reverse: false,
+        RepaintBoundary(
+          child: AnimatedBuilder(
+            animation: Listenable.merge([_clouds, _ridge]),
+            builder: (context, _) => CustomPaint(
+              painter: _ParallaxPainter(
+                clouds: _clouds.value,
+                ridge: _ridge.value,
+              ),
+            ),
+          ),
         ),
-        _LightLeak(
-          controller: _leakB,
-          color: PeakColors.coolLeak,
-          reverse: true,
-        ),
+        const RepaintBoundary(child: CustomPaint(painter: _GrainPainter())),
       ],
     );
   }
 }
 
-class _LightLeak extends StatelessWidget {
-  final AnimationController controller;
-  final Color color;
-  final bool reverse;
+class _ParallaxPainter extends CustomPainter {
+  final double clouds;
+  final double ridge;
 
-  const _LightLeak({
-    required this.controller,
-    required this.color,
-    required this.reverse,
-  });
+  const _ParallaxPainter({required this.clouds, required this.ridge});
 
   @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: controller,
-      builder: (context, _) {
-        final t = reverse ? 1.0 - controller.value : controller.value;
-        final dx = (reverse ? -0.8 : 0.8) + (reverse ? 1.4 : -1.4) * t;
-        final dy = 1.2 - 2.4 * t;
-        return Positioned(
-          left: MediaQuery.of(context).size.width * (0.5 + dx * 0.35) - 140,
-          top: MediaQuery.of(context).size.height * (0.5 + dy * 0.35) - 140,
-          child: IgnorePointer(
-            child: Container(
-              width: 280,
-              height: 280,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    color.withValues(alpha: 0.16),
-                    color.withValues(alpha: 0.0),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
+  void paint(Canvas canvas, Size size) {
+    _paintClouds(canvas, size);
+
+    _paintRidge(canvas, size, clouds, 0.18, PeakColors.moss, 0.28);
+    _paintRidge(canvas, size, ridge, 0.11, PeakColors.mossDeep, 0.42);
   }
+
+  void _paintClouds(Canvas canvas, Size size) {
+    final paint = Paint()..color = AppColors.surface.withValues(alpha: 0.6);
+    const shapes = [
+      (x: 0.12, y: 0.10, r: 34.0),
+      (x: 0.68, y: 0.17, r: 26.0),
+      (x: 0.42, y: 0.06, r: 20.0),
+    ];
+
+    for (final shape in shapes) {
+      final drift = (clouds + shape.x) % 1.0;
+      final cx = drift * (size.width + 220) - 110;
+      final cy = size.height * shape.y;
+
+      canvas.drawCircle(Offset(cx, cy), shape.r, paint);
+      canvas.drawCircle(
+        Offset(cx + shape.r * 0.9, cy + shape.r * 0.2),
+        shape.r * 0.72,
+        paint,
+      );
+      canvas.drawCircle(
+        Offset(cx - shape.r * 0.85, cy + shape.r * 0.25),
+        shape.r * 0.62,
+        paint,
+      );
+    }
+  }
+
+  void _paintRidge(
+    Canvas canvas,
+    Size size,
+    double t,
+    double heightRatio,
+    Color color,
+    double alpha,
+  ) {
+    final paint = Paint()..color = color.withValues(alpha: alpha);
+    final band = size.height * heightRatio;
+    final top = size.height - band;
+    const humps = 7;
+    final span = size.width / humps;
+    final shift = -t * span * 2;
+
+    final path = Path()..moveTo(shift - span, size.height);
+
+    for (var i = -1; i <= humps + 1; i++) {
+      final x = shift + i * span;
+      path.quadraticBezierTo(x + span * 0.5, top, x + span, size.height);
+    }
+    path
+      ..lineTo(size.width + span * 2, size.height)
+      ..close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(_ParallaxPainter oldDelegate) =>
+      oldDelegate.clouds != clouds || oldDelegate.ridge != ridge;
+}
+
+class _GrainPainter extends CustomPainter {
+  static const _dots = 1400;
+
+  const _GrainPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final random = math.Random(7);
+    final paint = Paint()..color = PeakColors.ink.withValues(alpha: 0.05);
+
+    for (var i = 0; i < _dots; i++) {
+      canvas.drawCircle(
+        Offset(
+          random.nextDouble() * size.width,
+          random.nextDouble() * size.height,
+        ),
+        random.nextDouble() * 1.1 + 0.3,
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_GrainPainter oldDelegate) => false;
 }

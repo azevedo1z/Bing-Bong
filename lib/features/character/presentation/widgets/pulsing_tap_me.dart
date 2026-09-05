@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../app/app_theme.dart';
 import '../../../../core/i18n/app_locale.dart';
 import '../../../../core/theme/peak_colors.dart';
 
@@ -34,12 +33,13 @@ class _PulsingTapMeState extends State<PulsingTapMe>
   @override
   Widget build(BuildContext context) {
     final label = widget.locale == AppLocale.pt ? 'toque em mim' : 'tap me';
+
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
         final t = Curves.easeInOut.transform(_controller.value);
         return Opacity(
-          opacity: 0.55 + t * 0.45,
+          opacity: 0.6 + t * 0.4,
           child: Transform.scale(scale: 0.98 + t * 0.04, child: child),
         );
       },
@@ -47,13 +47,9 @@ class _PulsingTapMeState extends State<PulsingTapMe>
         fit: BoxFit.scaleDown,
         child: Text(
           label,
-          style: TextStyle(
-            fontFamily: kCharacterFont,
-            fontSize: 32,
-            letterSpacing: 8,
-            color: PeakColors.textPrimary.withValues(alpha: 0.92),
-            shadows: kTextShadows,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.headlineSmall!.copyWith(color: AppColors.textSoft),
         ),
       ),
     );
