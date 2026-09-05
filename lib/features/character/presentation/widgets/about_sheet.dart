@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../../../app/app_theme.dart';
 import '../../../../core/theme/dimens.dart';
 import '../../../../core/theme/peak_colors.dart';
-import '../../../../core/widgets/glass_panel.dart';
-import '../../../../core/widgets/spring_pressable.dart';
+import '../../../../core/widgets/patch_panel.dart';
+import '../../../../core/widgets/pill_button.dart';
 
 const _githubUrl = 'https://github.com/azevedo1z';
 
@@ -20,35 +19,33 @@ class AboutSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      top: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(Insets.x4, 0, Insets.x4, Insets.x3),
-        child: GlassPanel(
-          borderRadius: Radii.xxl,
-          blurSigma: 30,
-          fillAlpha: 0.10,
-          strokeAlpha: 0.22,
+    return PatchPanel(
+      depth: Depths.floating,
+      stitched: true,
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(Radii.lg)),
+      child: SafeArea(
+        top: false,
+        child: Padding(
           padding: const EdgeInsets.fromLTRB(
-            Insets.x6,
+            Insets.x5,
             Insets.x4,
-            Insets.x6,
-            Insets.x7,
+            Insets.x5,
+            Insets.x5,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: const [
               _SheetHandle(),
-              SizedBox(height: Insets.x6),
-              _SheetIcon(),
               SizedBox(height: Insets.x5),
+              _SheetIcon(),
+              SizedBox(height: Insets.x4),
               _SheetTitle(),
-              SizedBox(height: Insets.x1 + 2),
-              _SheetSubtitle(),
-              SizedBox(height: Insets.x6),
+              SizedBox(height: Insets.x1),
+              _MutedLine('A Magic 8-Ball inspired by Peak'),
+              SizedBox(height: Insets.x5),
               _GitHubButton(),
               SizedBox(height: Insets.x4),
-              _SheetFooter(),
+              _SheetCredits(),
             ],
           ),
         ),
@@ -63,11 +60,11 @@ class _SheetHandle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 42,
-      height: 4,
+      width: 48,
+      height: 5,
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.35),
-        borderRadius: BorderRadius.circular(2),
+        color: AppColors.line,
+        borderRadius: BorderRadius.circular(Radii.pill),
       ),
     );
   }
@@ -78,49 +75,26 @@ class _SheetIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(Radii.xl);
-    return Container(
-      width: 96,
-      height: 96,
-      decoration: BoxDecoration(
+    const radius = BorderRadius.all(Radius.circular(Radii.md));
+
+    return DecoratedBox(
+      decoration: patchDecoration(
+        fill: AppColors.surface,
         borderRadius: radius,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.action.withValues(alpha: 0.35),
-            blurRadius: 30,
-            spreadRadius: -6,
-            offset: const Offset(0, 10),
-          ),
-        ],
+        depth: Depths.sticker,
       ),
-      child: ClipRRect(
-        borderRadius: radius,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            Image.asset('assets/images/about_icon.jpg', fit: BoxFit.cover),
-            IgnorePointer(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  borderRadius: radius,
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.white.withValues(alpha: 0.22),
-                      Colors.white.withValues(alpha: 0.0),
-                      Colors.black.withValues(alpha: 0.22),
-                    ],
-                    stops: const [0.0, 0.5, 1.0],
-                  ),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.22),
-                    width: 1,
-                  ),
-                ),
-              ),
-            ),
-          ],
+      child: Padding(
+        padding: const EdgeInsets.all(Strokes.ink),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.all(
+            Radius.circular(Radii.md - Strokes.ink),
+          ),
+          child: Image.asset(
+            'assets/images/about_icon.jpg',
+            width: 96,
+            height: 96,
+            fit: BoxFit.cover,
+          ),
         ),
       ),
     );
@@ -132,46 +106,41 @@ class _SheetTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Text(
-      'Bing Bong',
-      style: TextStyle(
-        fontFamily: kCharacterFont,
-        fontSize: 30,
-        color: AppColors.voice,
-        shadows: kTextShadows,
-      ),
-    );
+    return Text('Bing Bong', style: Theme.of(context).textTheme.headlineLarge);
   }
 }
 
-class _SheetSubtitle extends StatelessWidget {
-  const _SheetSubtitle();
+class _MutedLine extends StatelessWidget {
+  final String text;
+
+  const _MutedLine(this.text);
 
   @override
   Widget build(BuildContext context) {
     return Text(
-      'A Magic 8-Ball inspired by Peak',
-      style: TextStyle(
-        fontSize: 13,
-        letterSpacing: 0.4,
-        color: PeakColors.textMuted.withValues(alpha: 0.9),
-      ),
+      text,
+      textAlign: TextAlign.center,
+      style: Theme.of(
+        context,
+      ).textTheme.bodyMedium!.copyWith(color: AppColors.textSoft),
     );
   }
 }
 
-class _SheetFooter extends StatelessWidget {
-  const _SheetFooter();
+class _SheetCredits extends StatelessWidget {
+  const _SheetCredits();
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      'Tap Bing Bong and ask him anything.',
-      style: TextStyle(
-        fontSize: 12,
-        letterSpacing: 0.3,
-        color: PeakColors.textMuted.withValues(alpha: 0.6),
-      ),
+    return Column(
+      children: [
+        const _MutedLine('Tap Bing Bong and ask him anything.'),
+        const SizedBox(height: Insets.x1),
+        Text(
+          '3D model by OFFDucky3D',
+          style: Theme.of(context).textTheme.labelSmall,
+        ),
+      ],
     );
   }
 }
@@ -181,52 +150,10 @@ class _GitHubButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SpringPressable(
+    return PillButton(
+      label: '@azevedo1z',
+      icon: Icons.code_rounded,
       onTap: _openGitHub,
-      pressedScale: 0.92,
-      upDuration: const Duration(milliseconds: 360),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 13),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(Radii.md),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppColors.action,
-              AppColors.action.withValues(alpha: 0.82),
-            ],
-          ),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.22),
-            width: 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.action.withValues(alpha: 0.45),
-              blurRadius: 22,
-              spreadRadius: -4,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: const Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.code_rounded, size: 18, color: Colors.white),
-            SizedBox(width: 10),
-            Text(
-              '@azevedo1z',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 0.6,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

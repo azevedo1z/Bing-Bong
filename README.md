@@ -48,16 +48,16 @@ For a brief time after PEAK's launch, the developers at Aggro Crab could actuall
 - **26 authentic voice lines**: all the classic Bing Bong responses, from *"yeah definitely"* to *"im not comfortable answering that"*
 - **Real-time 3D Bing Bong**: a fully 3D model rendered with the Filament engine (via `thermion_flutter`), you squeeze the actual model, not a flat sprite
 - **Drag to inspect in 3D**: drag the character to orbit him freely, see his back, his feet, every angle; release and he eases back to facing you
-- **English / Português**: a glass language panel greets you over the main screen on first launch; your pick translates Bing Bong's on-screen quotes, while the voice audio stays in his original English
+- **English / Português**: a language panel greets you over the main screen on first launch; your pick translates Bing Bong's on-screen quotes, while the voice audio stays in his original English
 - **Shuffle-bag randomization**: every voice line plays before any repeats, never the same line twice in a row
-- **Premium gamified physics**: squash & stretch on tap (non-uniform scale), rotational wobble, spring-elastic button press
-- **Shockwave ripple emit**: tapping Bing Bong sends an expanding ring outward, emitted from the character on every voice line trigger
-- **Dual-tone breathing halo**: warm yellow + lime green aura that pulses (blur + spread oscillating) while speaking
+- **Cartoon physics**: squash & stretch on tap (non-uniform scale), rotational wobble, buttons that sink into their own shadow
+- **Comic impact star**: tapping Bing Bong sends a hand-drawn burst outward, emitted from the character on every voice line trigger
+- **Rotating sun rays**: flat orange wedges that turn slowly behind him while speaking
 - **"I'm Bing Bong" button**: dedicated button to hear his iconic catchphrase anytime
-- **Live quote display**: Bing Bong's response fades and slides in centered on screen as he speaks
-- **Atmospheric stage lighting**: blurred island backdrop + radial vignette + warm spotlight that intensifies on talk + drifting coral/cyan light leaks
-- **Typographic contrast**: Daruma Drop One reserved for the character's voice (quote, "tap me", his name); clean system sans for UI chrome
-- **About sheet**: glass bottom sheet with app info and a coral-glow link to the developer's GitHub
+- **Speech bubble**: Bing Bong's response pops in with a tail pointing at him, so the line is visibly his
+- **Hand-drawn ambience**: canvas gradient + parallax foliage ridges + flat drifting clouds + paper grain, with a warm sun wash that lifts on talk
+- **Typographic contrast**: Daruma Drop One reserved for the character's voice (quote, "tap me", his name); Nunito for UI copy and Archivo for uppercase labels
+- **About sheet**: stitched notebook page with app info and an ink pill linking to the developer's GitHub
 - **Idle float + breathing**: Bing Bong gently hovers and breathes (asymmetric scale) waiting to be consulted
 - **Immersive fullscreen**: no distractions, just you and the oracle
 
@@ -70,8 +70,8 @@ For a brief time after PEAK's launch, the developers at Aggro Crab could actuall
 | 3D Rendering | thermion_flutter (Filament engine) |
 | Audio | audioplayers 6.x (local asset playback) |
 | Links | url_launcher (external GitHub link) |
-| Typography | Daruma Drop One (character voice) + system sans (UI chrome) |
-| Visual Language | Premium Gamified UI + Playful Glassmorphism |
+| Typography | Daruma Drop One (character voice) + Nunito (UI) + Archivo (labels) |
+| Visual Language | Scout field manual: canvas, ink outline, sticker, patch |
 | Architecture | Feature-based Clean Architecture |
 
 ## Architecture
@@ -81,50 +81,57 @@ lib/
 ├── main.dart                                  # Portrait lock + immersive mode
 ├── app/
 │   ├── app.dart                               # ProviderScope + MaterialApp
-│   └── app_theme.dart                         # M3 dark theme + kCharacterFont token
+│   └── app_theme.dart                         # M3 light theme + TextTheme + font tokens
 ├── core/
 │   ├── constants/
-│   │   └── audio_constants.dart               # 26 voice line paths
+│   │   └── audio_constants.dart               # 26 voice line paths + catchphrase
 │   ├── i18n/
 │   │   ├── app_locale.dart                    # enum AppLocale { en, pt }
 │   │   └── quote_translations.dart            # PT overrides per voice line
+│   ├── painting/
+│   │   └── dashes.dart                        # dashPath(): dashes any Path
 │   ├── theme/
-│   │   └── peak_colors.dart                   # Peak palette + glow tones + soft text shadow
+│   │   ├── dimens.dart                        # Spacing scale + radii + strokes + depths
+│   │   └── peak_colors.dart                   # Peak palette + semantic roles
 │   └── widgets/
-│       ├── glass_panel.dart                   # Frosted glass primitive (BackdropFilter + sheen)
-│       └── spring_pressable.dart              # Reusable spring-press gesture wrapper
+│       ├── badge_button.dart                  # Round insignia button
+│       ├── patch_panel.dart                   # Surface primitive: ink outline + hard shadow
+│       ├── pill_button.dart                   # Labelled action, always a pill
+│       ├── sink_gesture.dart                  # Press physics: sinks into its own shadow
+│       └── sticker_text.dart                  # Text as a cut-out sticker
 ├── features/
 │   ├── character/
 │   │   ├── logic/
-│   │   │   ├── character_state.dart           # { isTalking, quoteKey }
+│   │   │   ├── character_state.dart           # { quoteKey }, isTalking derived
 │   │   │   ├── character_notifier.dart        # Audio ↔ UI state bridge
 │   │   │   └── quote_localizer.dart           # Resolves quote text per locale
 │   │   └── presentation/
 │   │       ├── character_page.dart            # Main screen composition
 │   │       └── widgets/
-│   │           ├── about_sheet.dart           # Glass bottom sheet + GitHub link
-│   │           ├── ambient_glow.dart          # Breathing dual-tone halo (warm + cool)
-│   │           ├── background.dart            # Blurred bg + vignette + spotlight + light leaks
-│   │           ├── bing_bong_widget.dart      # 3D GLB model (Thermion/Filament) + squash & stretch + wobble + ripple emit + drag-to-orbit
-│   │           ├── glass_icon_button.dart     # Reusable glass tile w/ spring press
-│   │           ├── glass_quote_card.dart      # Glassmorphism quote card
-│   │           ├── im_bing_bong_button.dart   # Specialized GlassIconButton (catchphrase)
+│   │           ├── about_sheet.dart           # Stitched notebook page + GitHub link
+│   │           ├── background.dart            # Canvas gradient + parallax + paper grain
+│   │           ├── bing_bong_model.dart       # 3D GLB viewport (Thermion/Filament) + orbit
+│   │           ├── bing_bong_widget.dart      # Squash & stretch + wobble + gesture shell
+│   │           ├── model_skeleton.dart        # Dashed silhouette while the model loads
 │   │           ├── pulsing_tap_me.dart        # Pulsing idle prompt
-│   │           └── shockwave.dart             # Expanding ring CustomPaint + controller
+│   │           ├── shockwave.dart             # Comic impact star CustomPaint + controller
+│   │           ├── speech_bubble.dart         # Body and tail as one unified Path
+│   │           └── sun_rays.dart              # Flat rotating sun wedges
 │   ├── language/
 │   │   └── presentation/
-│   │       └── language_overlay.dart          # Glass EN/PT panel over the main screen
+│   │       └── language_overlay.dart          # EN/PT insignia panel over the main screen
 │   └── splash/
 │       └── presentation/
-│           └── splash_page.dart               # Vignette-framed opening screen
+│           └── splash_page.dart               # Opening screen, black until it exits
 └── services/
-    ├── audio_service.dart                     # AudioPlayer wrapper
+    ├── audio_service.dart                     # Interface the logic layer depends on
+    ├── audio_player_service.dart              # audioplayers implementation
     └── audio_randomizer.dart                  # Shuffle-bag algorithm
 ```
 
-**Data flow:** Tap → `BingBongWidget` triggers `ShockwaveController.pulse()` (visual) and `CharacterNotifier.onTap()` (state) → `AudioService.playNext()` → `AudioRandomizer.next()` → plays mp3 and returns its asset path (the quote *key*) → state goes to `talking` → `_QuoteArea` resolves the key to text for the chosen locale via `localizeQuote()` and fades/slides it in, `AmbientGlow` ramps up via `_activeAnim`, `Background` opens vignette and lifts warm spotlight → `onPlayerComplete` → state returns to `idle` and the halo fades out. The "i'm bing bong" button follows the same flow via `playSpecific()`, bypassing the randomizer.
+**Data flow:** Tap → `BingBongWidget` triggers `ShockwaveController.pulse()` (visual) and `CharacterNotifier.onTap()` (state) → `AudioService.playNext()` → `AudioRandomizer.next()` → plays mp3 and returns its asset path (the quote *key*) → state goes to `talking` → `_QuoteArea` resolves the key to text for the chosen locale via `localizeQuote()` and pops the speech bubble in, `SunRays` ramps up via `_reveal`, `Background` lifts its warm sun wash → `onPlayerComplete` → state returns to `idle` and the rays fade out. The "i'm bing bong" button follows the same flow via `playSpecific()`, bypassing the randomizer.
 
-**Design system:** generic UI primitives live in `core/widgets/` (currently `GlassPanel`, `SpringPressable`). Feature-specific composition (animated character, halo, ripple, quote card) lives under `features/character/presentation/widgets/`. Color and typography tokens live in `core/theme/` and `app/app_theme.dart` (`kCharacterFont`).
+**Design system:** generic UI primitives live in `core/widgets/` (`PatchPanel`, `SinkGesture`, `BadgeButton`, `PillButton`, `StickerText`). Feature-specific composition (animated character, sun rays, impact star, speech bubble) lives under `features/character/presentation/widgets/`. Color, spacing and typography tokens live in `core/theme/` and `app/app_theme.dart`.
 
 ## Getting Started
 

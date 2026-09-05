@@ -1,79 +1,117 @@
 import 'package:flutter/material.dart';
-import '../../../app/app_theme.dart';
 import '../../../core/i18n/app_locale.dart';
 import '../../../core/theme/dimens.dart';
 import '../../../core/theme/peak_colors.dart';
-import '../../../core/widgets/glass_panel.dart';
-import '../../../core/widgets/spring_pressable.dart';
+import '../../../core/widgets/patch_panel.dart';
 
-class LanguageOverlay extends StatelessWidget {
-  static const double _panelMaxWidth = 320;
+class LanguageOverlay extends StatefulWidget {
+  static const double _panelMaxWidth = 340;
 
   final ValueChanged<AppLocale> onSelect;
 
   const LanguageOverlay({super.key, required this.onSelect});
 
   @override
+  State<LanguageOverlay> createState() => _LanguageOverlayState();
+}
+
+class _LanguageOverlayState extends State<LanguageOverlay>
+    with SingleTickerProviderStateMixin {
+  static const double _span = 0.55;
+
+  late final AnimationController _entrance;
+  late final CurvedAnimation _panelIn;
+  late final CurvedAnimation _englishIn;
+  late final CurvedAnimation _portugueseIn;
+
+  @override
+  void initState() {
+    super.initState();
+    _entrance = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 620),
+    );
+
+    _panelIn = _step(0.0);
+    _englishIn = _step(0.20);
+    _portugueseIn = _step(0.30);
+    _entrance.forward();
+  }
+
+  CurvedAnimation _step(double begin) {
+    assert(begin + _span <= 1.0, 'the staggered entrance must fit the controller');
+    return CurvedAnimation(
+      parent: _entrance,
+      curve: Interval(begin, begin + _span, curve: Curves.easeOutBack),
+    );
+  }
+
+  @override
+  void dispose() {
+    _panelIn.dispose();
+    _englishIn.dispose();
+    _portugueseIn.dispose();
+    _entrance.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
         const Positioned.fill(
-          child: ModalBarrier(dismissible: false, color: Color(0x99080312)),
+          child: ModalBarrier(dismissible: false, color: AppColors.scrim),
         ),
         Center(
           child: Padding(
-            padding: const EdgeInsets.all(Insets.x8),
+            padding: const EdgeInsets.all(Insets.x6),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: _panelMaxWidth),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(Radii.xxl),
-                  boxShadow: [
-                    BoxShadow(
-                      color: PeakColors.talkGlow.withValues(alpha: 0.20),
-                      blurRadius: 46,
-                      spreadRadius: 2,
-                      offset: const Offset(-6, -10),
-                    ),
-                    BoxShadow(
-                      color: PeakColors.accentCyan.withValues(alpha: 0.20),
-                      blurRadius: 46,
-                      spreadRadius: 2,
-                      offset: const Offset(8, 12),
-                    ),
-                  ],
-                ),
-                child: GlassPanel(
-                  borderRadius: Radii.xxl,
-                  blurSigma: 30,
-                  fillAlpha: 0.10,
-                  strokeAlpha: 0.22,
-                  padding: const EdgeInsets.all(Insets.x6),
+              constraints: const BoxConstraints(
+                maxWidth: LanguageOverlay._panelMaxWidth,
+              ),
+              child: _pop(
+                _panelIn,
+                PatchPanel(
+                  depth: Depths.floating,
+                  stitched: true,
+                  padding: const EdgeInsets.all(Insets.x5),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const Text(
+                      Text(
                         'LANGUAGE',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontFamily: kCharacterFont,
-                          fontSize: 17,
-                          color: PeakColors.textPrimary,
-                          shadows: kTextShadows,
-                        ),
+                        style: Theme.of(context).textTheme.headlineSmall,
                       ),
                       const SizedBox(height: Insets.x5),
-                      _LanguageButton(
-                        label: 'English',
-                        code: 'EN',
-                        onTap: () => onSelect(AppLocale.en),
-                      ),
-                      const SizedBox(height: Insets.x3),
-                      _LanguageButton(
-                        label: 'Português',
-                        code: 'PT',
-                        onTap: () => onSelect(AppLocale.pt),
+                      IntrinsicHeight(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Expanded(
+                              child: _pop(
+                                _englishIn,
+                                _LanguageBadge(
+                                  code: 'EN',
+                                  label: 'English',
+                                  fill: AppColors.action,
+                                  onTap: () => widget.onSelect(AppLocale.en),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: Insets.x3),
+                            Expanded(
+                              child: _pop(
+                                _portugueseIn,
+                                _LanguageBadge(
+                                  code: 'PT',
+                                  label: 'Português',
+                                  fill: AppColors.actionAlt,
+                                  onTap: () => widget.onSelect(AppLocale.pt),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -85,93 +123,52 @@ class LanguageOverlay extends StatelessWidget {
       ],
     );
   }
+
+  Widget _pop(Animation<double> animation, Widget child) => FadeTransition(
+    opacity: animation,
+    child: ScaleTransition(scale: animation, child: child),
+  );
 }
 
-class _LanguageButton extends StatelessWidget {
-  final String label;
+class _LanguageBadge extends StatelessWidget {
   final String code;
+  final String label;
+  final Color fill;
   final VoidCallback onTap;
 
-  const _LanguageButton({
-    required this.label,
+  const _LanguageBadge({
     required this.code,
+    required this.label,
+    required this.fill,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return SpringPressable(
+    final theme = Theme.of(context).textTheme;
+
+    return PatchPanel(
+      fill: fill,
+      depth: Depths.button,
+      borderRadius: BorderRadius.circular(Radii.md),
+      padding: const EdgeInsets.symmetric(vertical: Insets.x4),
       onTap: onTap,
-      pressedScale: 0.94,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: Insets.x5,
-          vertical: Insets.x4,
-        ),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(Radii.md),
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.white.withValues(alpha: 0.14),
-              Colors.white.withValues(alpha: 0.045),
-            ],
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            code,
+            style: theme.labelLarge!.copyWith(fontSize: 26, letterSpacing: 2),
           ),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.2),
-            width: 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: PeakColors.textPrimary,
-                  shadows: kTextShadows,
-                ),
-              ),
+          const SizedBox(height: Insets.x1),
+          Text(
+            label,
+            style: theme.bodyMedium!.copyWith(
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
             ),
-            _CodeChip(code: code),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _CodeChip extends StatelessWidget {
-  final String code;
-
-  const _CodeChip({required this.code});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: Insets.x2,
-        vertical: Insets.x1,
-      ),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(Radii.sm),
-        color: Colors.white.withValues(alpha: 0.1),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.2),
-          width: 1,
-        ),
-      ),
-      child: Text(
-        code,
-        style: const TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.7,
-          color: PeakColors.textPrimary,
-        ),
+          ),
+        ],
       ),
     );
   }

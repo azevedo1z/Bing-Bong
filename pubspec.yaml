@@ -23,7 +23,7 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   image_path: "assets/images/icon.png"
-  adaptive_icon_background: "#1A0A2E"
+  adaptive_icon_background: "#F0E3C8"
   adaptive_icon_foreground: "assets/images/icon.png"
 
 flutter:
@@ -36,3 +36,17 @@ flutter:
     - family: DarumadropOne
       fonts:
         - asset: assets/fonts/DarumadropOne-Regular.ttf
+    - family: Nunito
+      fonts:
+        - asset: assets/fonts/Nunito-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Nunito-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Nunito-ExtraBold.ttf
+          weight: 800
+    - family: Archivo
+      fonts:
+        - asset: assets/fonts/Archivo-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Archivo-ExtraBold.ttf
+          weight: 800

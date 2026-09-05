@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../core/navigation/fade_route.dart';
-import '../../../core/theme/peak_colors.dart';
 import '../../character/presentation/character_page.dart';
 
 class SplashPage extends StatefulWidget {
@@ -14,8 +13,8 @@ class SplashPage extends StatefulWidget {
 class _SplashPageState extends State<SplashPage>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
-  late final Animation<double> _fadeIn;
-  late final Animation<double> _fadeOut;
+  late final CurvedAnimation _fadeIn;
+  late final CurvedAnimation _fadeOut;
 
   @override
   void initState() {
@@ -25,28 +24,28 @@ class _SplashPageState extends State<SplashPage>
       duration: const Duration(milliseconds: 2800),
     );
 
-    _fadeIn = Tween(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.0, 0.3, curve: Curves.easeIn),
-      ),
+    _fadeIn = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.0, 0.3, curve: Curves.easeIn),
     );
 
-    _fadeOut = Tween(begin: 1.0, end: 0.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.75, 1.0, curve: Curves.easeOut),
-      ),
+    _fadeOut = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.75, 1.0, curve: Curves.easeOut),
     );
 
     _controller.forward().then((_) {
       if (!mounted) return;
-      Navigator.of(context).pushReplacement(fadeRoute(const CharacterPage()));
+      Navigator.of(
+        context,
+      ).pushReplacement(fadeRoute<void>(const CharacterPage()));
     });
   }
 
   @override
   void dispose() {
+    _fadeIn.dispose();
+    _fadeOut.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -57,39 +56,44 @@ class _SplashPageState extends State<SplashPage>
       value: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
       ),
       child: Scaffold(
-        backgroundColor: PeakColors.deepPurple,
+        backgroundColor: Colors.black,
         body: AnimatedBuilder(
           animation: _controller,
-          builder: (context, child) =>
-              Opacity(opacity: _fadeIn.value * _fadeOut.value, child: child),
-          child: Stack(
+          builder: (context, child) => Opacity(
+            opacity: _fadeIn.value * (1 - _fadeOut.value),
+            child: child,
+          ),
+          child: const Stack(
             fit: StackFit.expand,
             children: [
-              Image.asset(
-                'assets/images/bing-bong-app-opening.jpg',
+              Image(
+                image: AssetImage('assets/images/bing-bong-app-opening.jpg'),
                 fit: BoxFit.contain,
-                width: double.infinity,
-                height: double.infinity,
               ),
-              IgnorePointer(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: RadialGradient(
-                      center: Alignment.center,
-                      radius: 1.0,
-                      colors: [
-                        Colors.transparent,
-                        PeakColors.deepPurple.withValues(alpha: 0.5),
-                        PeakColors.vignetteEdge.withValues(alpha: 0.85),
-                      ],
-                      stops: const [0.55, 0.85, 1.0],
-                    ),
-                  ),
-                ),
-              ),
+              _Vignette(),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Vignette extends StatelessWidget {
+  const _Vignette();
+
+  @override
+  Widget build(BuildContext context) {
+    return const IgnorePointer(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: RadialGradient(
+            radius: 1.0,
+            colors: [Colors.transparent, Color(0x8C000000), Colors.black],
+            stops: [0.5, 0.82, 1.0],
           ),
         ),
       ),
