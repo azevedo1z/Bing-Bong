@@ -32,8 +32,6 @@ abstract final class AppColors {
   static const voice = PeakColors.lime;
   static const action = PeakColors.lime;
   static const actionAlt = PeakColors.sun;
-  static const focus = PeakColors.sky;
-  static const danger = PeakColors.emberInk;
 
   static const scrim = Color(0x8C14120E);
 }

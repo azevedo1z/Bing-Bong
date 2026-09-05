@@ -1,3 +1,5 @@
+const String kCatchphraseAudio = 'audio/im bing bong.mp3';
+
 const List<String> kAudioFiles = [
   'audio/definitely not.mp3',
   'audio/dont do it.mp3',

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -71,7 +72,19 @@ class _BingBongModelState extends State<BingBongModel>
   }
 
   Future<void> _setup() async {
+    try {
+      await _createViewport();
+    } catch (error, stackTrace) {
+      debugPrint('3D viewport failed to load: $error\n$stackTrace');
+    }
+  }
+
+  Future<void> _createViewport() async {
     final viewer = await ThermionFlutterPlugin.createViewer();
+    if (!mounted) {
+      await viewer.dispose();
+      return;
+    }
     _viewer = viewer;
 
     final asset = await viewer.loadGltf(_modelAsset);
@@ -95,8 +108,10 @@ class _BingBongModelState extends State<BingBongModel>
       );
     });
 
-    _arrival.forward();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _reframeToLens());
+    unawaited(_arrival.forward());
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => unawaited(_reframeToLens()),
+    );
   }
 
   Future<void> _frameCamera(double tanHalfFov) async {
@@ -195,10 +210,12 @@ class _BingBongModelState extends State<BingBongModel>
     final rotation = Matrix4.identity()
       ..rotateY(yaw)
       ..rotateX(pitch);
-    return Matrix4.translationValues(_center.x, _center.y, _center.z) *
-        rotation *
-        Matrix4.translationValues(-_center.x, -_center.y, -_center.z) *
-        _baseTransform;
+    return Matrix4.translationValues(_center.x, _center.y, _center.z)
+        .multiplied(rotation)
+        .multiplied(
+          Matrix4.translationValues(-_center.x, -_center.y, -_center.z),
+        )
+        .multiplied(_baseTransform);
   }
 
   Future<void> _reframeToLens() async {
@@ -224,7 +241,8 @@ class _BingBongModelState extends State<BingBongModel>
     _returnController.dispose();
     _arrivalCurve.dispose();
     _arrival.dispose();
-    _viewer?.dispose();
+    final viewer = _viewer;
+    if (viewer != null) unawaited(viewer.dispose());
     super.dispose();
   }
 

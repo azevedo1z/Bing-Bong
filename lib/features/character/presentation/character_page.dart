@@ -1,18 +1,22 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/constants/audio_constants.dart';
 import '../../../core/i18n/app_locale.dart';
 import '../../../core/theme/dimens.dart';
 import '../../../core/theme/peak_colors.dart';
 import '../../../core/widgets/badge_button.dart';
 import '../../../core/widgets/sticker_text.dart';
+import '../../language/presentation/language_overlay.dart';
 import '../logic/character_notifier.dart';
 import '../logic/character_state.dart';
 import '../logic/quote_localizer.dart';
 import 'widgets/about_sheet.dart';
 import 'widgets/background.dart';
 import 'widgets/bing_bong_widget.dart';
-import '../../language/presentation/language_overlay.dart';
 import 'widgets/pulsing_tap_me.dart';
 import 'widgets/shockwave.dart';
 import 'widgets/speech_bubble.dart';
@@ -53,12 +57,7 @@ class _CharacterPageState extends ConsumerState<CharacterPage> {
                   const _Title(),
                   const SizedBox(height: Insets.x5),
                   _ActionRow(
-                    onImBingBong: () {
-                      _shockwave.pulse();
-                      ref
-                          .read(characterProvider.notifier)
-                          .playSpecific('audio/im bing bong.mp3');
-                    },
+                    onImBingBong: _sayCatchphrase,
                     onAbout: () => _openAbout(context),
                   ),
                   const Spacer(),
@@ -79,8 +78,15 @@ class _CharacterPageState extends ConsumerState<CharacterPage> {
     );
   }
 
+  void _sayCatchphrase() {
+    _shockwave.pulse();
+    unawaited(
+      ref.read(characterProvider.notifier).playSpecific(kCatchphraseAudio),
+    );
+  }
+
   void _openAbout(BuildContext context) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.transparent,
       barrierColor: AppColors.scrim,
@@ -141,6 +147,8 @@ class _QuoteArea extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final quoteKey = state.quoteKey;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: Insets.x6),
       child: ConstrainedBox(
@@ -160,13 +168,12 @@ class _QuoteArea extends StatelessWidget {
                 child: child,
               ),
             ),
-            child: state.isTalking
-                ? _Quote(
-                    key: ValueKey(state.quoteKey),
-                    state: state,
-                    locale: locale,
-                  )
-                : PulsingTapMe(locale: locale),
+            child: quoteKey == null
+                ? PulsingTapMe(locale: locale)
+                : _Quote(
+                    key: ValueKey(quoteKey),
+                    text: localizeQuote(quoteKey, locale),
+                  ),
           ),
         ),
       ),
@@ -175,13 +182,12 @@ class _QuoteArea extends StatelessWidget {
 }
 
 class _Quote extends StatelessWidget {
-  final CharacterState state;
-  final AppLocale locale;
-
-  const _Quote({super.key, required this.state, required this.locale});
-
   static const _shortQuote = 12;
   static const _mediumQuote = 28;
+
+  final String text;
+
+  const _Quote({super.key, required this.text});
 
   static double _sizeFor(String quote) {
     if (quote.length <= _shortQuote) return 34;
@@ -191,15 +197,13 @@ class _Quote extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final quote = localizeQuote(state.quoteKey, locale);
-
     return SpeechBubble(
       child: Text(
-        quote,
+        text,
         textAlign: TextAlign.center,
         style: Theme.of(
           context,
-        ).textTheme.headlineLarge!.copyWith(fontSize: _sizeFor(quote)),
+        ).textTheme.headlineLarge!.copyWith(fontSize: _sizeFor(text)),
       ),
     );
   }

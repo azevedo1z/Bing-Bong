@@ -36,7 +36,9 @@ class _SplashPageState extends State<SplashPage>
 
     _controller.forward().then((_) {
       if (!mounted) return;
-      Navigator.of(context).pushReplacement(fadeRoute(const CharacterPage()));
+      Navigator.of(
+        context,
+      ).pushReplacement(fadeRoute<void>(const CharacterPage()));
     });
   }
 

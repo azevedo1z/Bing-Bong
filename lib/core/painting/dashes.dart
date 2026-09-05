@@ -1,7 +1,7 @@
 import 'dart:ui';
 
 Path dashPath(Path source, {double dash = 6, double gap = 5}) {
-  assert(dash > 0 && gap >= 0, 'o passo precisa avançar, senão o laço trava');
+  assert(dash > 0 && gap >= 0, 'the step must advance or the loop hangs');
 
   final result = Path();
 

@@ -39,7 +39,7 @@ class _LanguageOverlayState extends State<LanguageOverlay>
   }
 
   CurvedAnimation _step(double begin) {
-    assert(begin + _span <= 1.0, 'a entrada tem de caber no controlador');
+    assert(begin + _span <= 1.0, 'the staggered entrance must fit the controller');
     return CurvedAnimation(
       parent: _entrance,
       curve: Interval(begin, begin + _span, curve: Curves.easeOutBack),

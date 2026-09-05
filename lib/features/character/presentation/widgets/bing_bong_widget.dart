@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -21,6 +22,12 @@ class _BingBongWidgetState extends ConsumerState<BingBongWidget>
     with TickerProviderStateMixin {
   static const double _modelSize = 280;
   static const double _dragSensitivity = 0.011;
+  static const double _floatAmplitude = 8;
+  static const double _breathStretchY = 0.018;
+  static const double _breathSqueezeX = 0.012;
+  static const double _wobbleAmplitude = 0.045;
+  static const double _wobbleDecay = 1.8;
+  static const double _wobbleCycles = 3;
 
   late final AnimationController _floatController;
   late final AnimationController _breathController;
@@ -56,7 +63,10 @@ class _BingBongWidgetState extends ConsumerState<BingBongWidget>
       parent: _floatController,
       curve: Curves.easeInOut,
     );
-    _floatAnim = Tween<double>(begin: -8, end: 8).animate(_floatCurve);
+    _floatAnim = Tween<double>(
+      begin: -_floatAmplitude,
+      end: _floatAmplitude,
+    ).animate(_floatCurve);
 
     _breathController = AnimationController(
       vsync: this,
@@ -73,58 +83,42 @@ class _BingBongWidgetState extends ConsumerState<BingBongWidget>
       duration: const Duration(milliseconds: 560),
     );
 
-    _scaleY = TweenSequence<double>([
-      TweenSequenceItem(
-        tween: Tween(
-          begin: 1.0,
-          end: 0.88,
-        ).chain(CurveTween(curve: Curves.easeOut)),
-        weight: 14,
-      ),
-      TweenSequenceItem(
-        tween: Tween(
-          begin: 0.88,
-          end: 1.20,
-        ).chain(CurveTween(curve: Curves.easeOutCubic)),
-        weight: 22,
-      ),
-      TweenSequenceItem(
-        tween: Tween(
-          begin: 1.20,
-          end: 1.0,
-        ).chain(CurveTween(curve: Curves.elasticOut)),
-        weight: 64,
-      ),
-    ]).animate(_bounceController);
-
-    _scaleX = TweenSequence<double>([
-      TweenSequenceItem(
-        tween: Tween(
-          begin: 1.0,
-          end: 1.10,
-        ).chain(CurveTween(curve: Curves.easeOut)),
-        weight: 14,
-      ),
-      TweenSequenceItem(
-        tween: Tween(
-          begin: 1.10,
-          end: 0.86,
-        ).chain(CurveTween(curve: Curves.easeOutCubic)),
-        weight: 22,
-      ),
-      TweenSequenceItem(
-        tween: Tween(
-          begin: 0.86,
-          end: 1.0,
-        ).chain(CurveTween(curve: Curves.elasticOut)),
-        weight: 64,
-      ),
-    ]).animate(_bounceController);
+    _scaleY = _squashAndStretch(anticipation: 0.88, peak: 1.20);
+    _scaleX = _squashAndStretch(anticipation: 1.10, peak: 0.86);
 
     _wobbleController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 700),
     );
+  }
+
+  Animation<double> _squashAndStretch({
+    required double anticipation,
+    required double peak,
+  }) {
+    return TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween(
+          begin: 1.0,
+          end: anticipation,
+        ).chain(CurveTween(curve: Curves.easeOut)),
+        weight: 14,
+      ),
+      TweenSequenceItem(
+        tween: Tween(
+          begin: anticipation,
+          end: peak,
+        ).chain(CurveTween(curve: Curves.easeOutCubic)),
+        weight: 22,
+      ),
+      TweenSequenceItem(
+        tween: Tween(
+          begin: peak,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.elasticOut)),
+        weight: 64,
+      ),
+    ]).animate(_bounceController);
   }
 
   @override
@@ -139,11 +133,11 @@ class _BingBongWidgetState extends ConsumerState<BingBongWidget>
   }
 
   Future<void> _onTap() async {
-    HapticFeedback.mediumImpact();
+    unawaited(HapticFeedback.mediumImpact());
     widget.shockwave?.pulse();
 
-    _bounceController.forward(from: 0);
-    _wobbleController.forward(from: 0);
+    unawaited(_bounceController.forward(from: 0));
+    unawaited(_wobbleController.forward(from: 0));
 
     await ref.read(characterProvider.notifier).onTap();
   }
@@ -157,10 +151,12 @@ class _BingBongWidgetState extends ConsumerState<BingBongWidget>
 
   void _onPanEnd(DragEndDetails details) => _orbit.release();
 
-  double _wobbleRad(double w) {
-    if (w == 0) return 0;
-    final decay = math.pow(1 - w, 1.8).toDouble();
-    return math.sin(w * math.pi * 3.0) * 0.045 * decay;
+  double _wobbleRadians(double progress) {
+    if (progress == 0) return 0;
+    final decay = math.pow(1 - progress, _wobbleDecay).toDouble();
+    return math.sin(progress * math.pi * _wobbleCycles) *
+        _wobbleAmplitude *
+        decay;
   }
 
   @override
@@ -179,8 +175,8 @@ class _BingBongWidgetState extends ConsumerState<BingBongWidget>
         ]),
         builder: (context, child) {
           final breathT = _breathAnim.value;
-          final breathY = 1.0 + breathT * 0.018;
-          final breathX = 1.0 - breathT * 0.012;
+          final breathY = 1.0 + breathT * _breathStretchY;
+          final breathX = 1.0 - breathT * _breathSqueezeX;
 
           final sy = _scaleY.value * breathY;
           final sx = _scaleX.value * breathX;
@@ -188,7 +184,7 @@ class _BingBongWidgetState extends ConsumerState<BingBongWidget>
           return Transform.translate(
             offset: Offset(0, _floatAnim.value),
             child: Transform.rotate(
-              angle: _wobbleRad(_wobbleController.value),
+              angle: _wobbleRadians(_wobbleController.value),
               child: Transform.scale(
                 scaleX: sx,
                 scaleY: sy,

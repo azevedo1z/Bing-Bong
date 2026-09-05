@@ -1,8 +1,9 @@
 class CharacterState {
-  final bool isTalking;
-  final String quoteKey;
+  final String? quoteKey;
 
-  const CharacterState({this.isTalking = false, this.quoteKey = ''});
+  const CharacterState({this.quoteKey});
 
   static const idle = CharacterState();
+
+  bool get isTalking => quoteKey != null;
 }
