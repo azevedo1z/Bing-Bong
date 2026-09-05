@@ -1,6 +1,6 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:bingbong/core/i18n/app_locale.dart';
 import 'package:bingbong/features/character/logic/quote_localizer.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('localizeQuote', () {
