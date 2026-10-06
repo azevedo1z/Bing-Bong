@@ -49,7 +49,10 @@ class _CharacterPageState extends ConsumerState<CharacterPage> {
         body: Stack(
           fit: StackFit.expand,
           children: [
-            Background(isTalking: state.isTalking),
+            _SwipeUpDetector(
+              onSwipeUp: () => _openAbout(context),
+              child: Background(isTalking: state.isTalking),
+            ),
             SafeArea(
               child: Column(
                 children: [
@@ -92,6 +95,28 @@ class _CharacterPageState extends ConsumerState<CharacterPage> {
       barrierColor: AppColors.scrim,
       isScrollControlled: true,
       builder: (_) => const AboutSheet(),
+    );
+  }
+}
+
+class _SwipeUpDetector extends StatelessWidget {
+  static const _minVelocity = 700.0;
+
+  final VoidCallback onSwipeUp;
+  final Widget child;
+
+  const _SwipeUpDetector({required this.onSwipeUp, required this.child});
+
+  void _onDragEnd(DragEndDetails details) {
+    if ((details.primaryVelocity ?? 0) <= -_minVelocity) onSwipeUp();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onVerticalDragEnd: _onDragEnd,
+      child: child,
     );
   }
 }
